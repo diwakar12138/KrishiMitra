@@ -4,7 +4,7 @@ import InputField from "./InputField";
 import { registerUser } from "../../services/authServices";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+
 
 function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ function RegisterForm() {
   });
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -41,11 +41,9 @@ function RegisterForm() {
       password: formData.password,
     });
 
-    toast.success(response.message);
+    toast.success("Registration Successful. Please login.");
 
-    login(response.token);
-
-    navigate("/");
+    navigate("/login");
 
   } catch (error) {
 
