@@ -1,47 +1,58 @@
+import { useState } from "react";
+import CropList from "../components/dashboard/CropList";
+import AddCropModal from "../components/crops/AddCropModal";
+
 function Dashboard() {
+
+  const [showModal, setShowModal] = useState(false);
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-[#F8FAF7] py-10">
+      <div className="max-w-7xl mx-auto px-6">
 
-      <h1 className="text-4xl font-bold text-green-800 mb-3">
-        Welcome to Dashboard 🌾
-      </h1>
+        {/* Dashboard Heading */}
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold text-green-800">
+            🌾 Farmer Dashboard
+          </h1>
 
-      <p className="text-gray-600 mb-10">
-        Manage your crops, weather updates, mandi prices and government schemes.
-      </p>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-xl font-semibold">🌾 My Crops</h2>
-          <p className="text-gray-500 mt-2">
-            Manage your crop records.
+          <p className="text-gray-600 mt-2">
+            Welcome back! Manage your crops and monitor all your farming
+            activities from one place.
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-xl font-semibold">🌦 Weather</h2>
-          <p className="text-gray-500 mt-2">
-            View weather updates.
-          </p>
-        </div>
+        {/* My Crops Section */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
 
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-xl font-semibold">📈 Mandi Prices</h2>
-          <p className="text-gray-500 mt-2">
-            Check latest market prices.
-          </p>
-        </div>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
 
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h2 className="text-xl font-semibold">🏛 Schemes</h2>
-          <p className="text-gray-500 mt-2">
-            Government schemes for farmers.
-          </p>
+            <div>
+              <h2 className="text-2xl font-bold text-green-800">
+                🌱 My Crops
+              </h2>
+
+              <p className="text-gray-500 mt-1">
+                View and manage all your registered crops.
+              </p>
+            </div>
+
+            <button onClick={() => setShowModal(true)}
+className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-xl font-semibold transition"
+>
+  + Add Crop
+</button>
+
+          </div>
+
+          <CropList />
+
+
+
+          <AddCropModal open={showModal} onClose={() => setShowModal(false)}/>
+
         </div>
 
       </div>
-
     </div>
   );
 }
