@@ -1,4 +1,9 @@
-function CropList({ crops, loading }) {
+function CropList({
+  crops,
+  loading,
+  onEdit,
+  onDelete,
+}) {
   if (loading) {
     return (
       <p className="text-center py-10 text-gray-500">
@@ -26,7 +31,7 @@ function CropList({ crops, loading }) {
       {crops.map((crop) => (
         <div
           key={crop._id}
-          className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 border border-gray-100 overflow-hidden"
+          className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
         >
           {crop.cropImage ? (
             <img
@@ -61,8 +66,10 @@ function CropList({ crops, loading }) {
               {crop.cropVariety || "No Variety"}
             </p>
 
-            <div className="space-y-2 text-sm">
-              <p><strong>Season:</strong> {crop.season}</p>
+            <div className="space-y-2 text-sm text-gray-700">
+              <p>
+                <strong>Season:</strong> {crop.season}
+              </p>
 
               <p>
                 <strong>Area:</strong> {crop.area} {crop.areaUnit}
@@ -77,6 +84,23 @@ function CropList({ crops, loading }) {
                 <strong>Harvest:</strong>{" "}
                 {new Date(crop.expectedHarvestDate).toLocaleDateString()}
               </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => onEdit(crop)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+              >
+                ✏️ Edit
+              </button>
+
+              <button
+                onClick={() => onDelete(crop._id)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold transition"
+              >
+                🗑 Delete
+              </button>
             </div>
           </div>
         </div>

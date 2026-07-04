@@ -6,6 +6,7 @@ import { getAllCrops } from "../services/cropServices";
 
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
+  const [selectedCrop, setSelectedCrop] = useState(null);
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +36,25 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+
+
+  const handleEdit = (crop) => {
+    setSelectedCrop(crop);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this crop?"
+    );
+
+    if (!confirmDelete) return;
+
+    console.log("Delete Crop ID:", id);
+
+    // API call next step me add karenge
   };
 
   useEffect(() => {
@@ -80,7 +100,10 @@ function Dashboard() {
           </div>
 
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setSelectedCrop(null);
+              setShowModal(true);
+            }}
             className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition duration-300"
           >
             + Add Crop
@@ -143,6 +166,8 @@ function Dashboard() {
           <CropList
             crops={crops}
             loading={loading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
 
         </div>
@@ -150,8 +175,12 @@ function Dashboard() {
         {/* Add Crop Modal */}
         <AddCropModal
           open={showModal}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedCrop(null);
+          }}
           refreshCrops={fetchCrops}
+          selectedCrop={selectedCrop}
         />
 
       </div>
