@@ -1,25 +1,4 @@
-import { useEffect, useState } from "react";
-import { getAllCrops } from "../../services/cropServices";
-
-function CropList() {
-  const [crops, setCrops] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchCrops();
-  }, []);
-
-  const fetchCrops = async () => {
-    try {
-      const response = await getAllCrops();
-      setCrops(response.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function CropList({ crops, loading }) {
   if (loading) {
     return (
       <p className="text-center py-10 text-gray-500">
@@ -44,14 +23,11 @@ function CropList() {
 
   return (
     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-
       {crops.map((crop) => (
-
         <div
           key={crop._id}
           className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 border border-gray-100 overflow-hidden"
         >
-
           {crop.cropImage ? (
             <img
               src={crop.cropImage}
@@ -65,27 +41,31 @@ function CropList() {
           )}
 
           <div className="p-5">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-2xl font-bold text-green-700">
+                {crop.cropName}
+              </h2>
 
-            <h2 className="text-2xl font-bold text-green-700">
-              {crop.cropName}
-            </h2>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  crop.status === "Growing"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-orange-100 text-orange-700"
+                }`}
+              >
+                {crop.status}
+              </span>
+            </div>
 
             <p className="text-gray-500 mb-4">
               {crop.cropVariety || "No Variety"}
             </p>
 
             <div className="space-y-2 text-sm">
-
-              <p>
-                <strong>Season:</strong> {crop.season}
-              </p>
+              <p><strong>Season:</strong> {crop.season}</p>
 
               <p>
                 <strong>Area:</strong> {crop.area} {crop.areaUnit}
-              </p>
-
-              <p>
-                <strong>Status:</strong> {crop.status}
               </p>
 
               <p>
@@ -97,15 +77,10 @@ function CropList() {
                 <strong>Harvest:</strong>{" "}
                 {new Date(crop.expectedHarvestDate).toLocaleDateString()}
               </p>
-
             </div>
-
           </div>
-
         </div>
-
       ))}
-
     </div>
   );
 }

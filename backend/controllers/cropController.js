@@ -1,49 +1,74 @@
 const Crop = require("../models/Crop");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
 const addCrop = async (req, res) => {
-    try {
+  try {
+    const {
+      cropName,
+      cropVariety,
+      season,
+      area,
+      areaUnit,
+      sowingDate,
+      expectedHarvestDate,
+      irrigationType,
+      soilType,
+      notes,
+    } = req.body;
 
-        const {
-            cropName,
-            cropVariety,
-            season,
-            area,
-            areaUnit,
-            sowingDate,
-            expectedHarvestDate,
-            irrigationType,
-            soilType,
-            notes
-        } = req.body;
+    let imageUrl = "";
 
-        const crop = await Crop.create({
-            farmer: req.user._id,
-            cropName,
-            cropVariety,
-            season,
-            area,
-            areaUnit,
-            sowingDate,
-            expectedHarvestDate,
-            irrigationType,
-            soilType,
-            notes
+    if (req.file) {
+      const uploadFromBuffer = () => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder: "KrishiMitra/Crops",
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+
+          streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
         });
+      };
 
-        return res.status(201).json({
-            success: true,
-            message: "Crop added successfully.",
-            data: crop
-        });
+      const uploadedImage = await uploadFromBuffer();
 
-    } catch (error) {
-        console.log(error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
+      imageUrl = uploadedImage.secure_url;
     }
+
+    const crop = await Crop.create({
+      farmer: req.user._id,
+      cropName,
+      cropVariety,
+      season,
+      area,
+      areaUnit,
+      sowingDate,
+      expectedHarvestDate,
+      irrigationType,
+      soilType,
+      notes,
+      cropImage: imageUrl,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Crop added successfully.",
+      data: crop,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
 };
 
 

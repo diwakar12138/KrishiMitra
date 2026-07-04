@@ -10,12 +10,11 @@ export const getAllCrops = async () => {
   return response.data;
 };
 
-
-
 export const createCrop = async (cropData) => {
   const response = await api.post("/crops", cropData, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "multipart/form-data",
     },
   });
 

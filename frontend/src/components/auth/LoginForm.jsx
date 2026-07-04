@@ -29,9 +29,11 @@ function LoginForm() {
 
       toast.success(response.message);
 
-      login(response.token);
+      login(response.token, response.data);
 
       navigate("/");
+
+      
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Login Failed"
