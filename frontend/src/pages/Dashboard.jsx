@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import CropList from "../components/dashboard/CropList";
 import AddCropModal from "../components/crops/AddCropModal";
-import { getAllCrops } from "../services/cropServices";
+// import { getAllCrops } from "../services/cropServices";
+import { getAllCrops, deleteCrop } from "../services/cropServices";
 
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
@@ -52,9 +53,20 @@ function Dashboard() {
 
     if (!confirmDelete) return;
 
-    console.log("Delete Crop ID:", id);
+    try {
+      await deleteCrop(id);
 
-    // API call next step me add karenge
+      fetchCrops();
+
+      alert("Crop deleted successfully.");
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        error.response?.data?.message ||
+        "Failed to delete crop."
+      );
+    }
   };
 
   useEffect(() => {
