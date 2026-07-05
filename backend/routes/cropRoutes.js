@@ -9,7 +9,7 @@ const {addCrop,getAllCrops,getCropById,updateCrop,deleteCrop} = require("../cont
 router.post("/", protect, upload.single("cropImage"), addCrop);
 router.get("/", protect, getAllCrops);
 router.get("/:id", protect, getCropById);
-router.put("/:id", protect, updateCrop);
+router.put("/:id", protect, upload.single("cropImage"), updateCrop);
 router.delete("/:id", protect, deleteCrop);
 
 module.exports = router;

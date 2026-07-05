@@ -39,7 +39,7 @@ const cropSchema = new mongoose.Schema(
 
         sowingDate: {
             type: Date,
-            required: true,
+            required: null,
         },
 
         expectedHarvestDate: {
@@ -72,6 +72,16 @@ const cropSchema = new mongoose.Schema(
             type: String,
             default: "",
             maxlength: 500,
+        },
+
+        cropImage: {
+            type: String,
+            default: "",
+        },
+
+        cropImagePublicId: {
+            type: String,
+            default: "",
         },
     },
     {

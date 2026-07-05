@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { createCrop } from "../../services/cropServices";
+import {
+  createCrop,
+  updateCrop,
+} from "../../services/cropServices";
 import toast from "react-hot-toast";
 import {
   X,
@@ -121,7 +124,12 @@ function inputClasses(hasError) {
   }`;
 }
 
-function AddCropModal({ open, onClose, onSave }) {
+function AddCropModal({
+  open,
+  onClose,
+  refreshCrops,
+  selectedCrop,
+}) {
   const [formData, setFormData] = useState(initialFormState);
   const [preview, setPreview] = useState(null);
   const [touched, setTouched] = useState({});
@@ -130,8 +138,8 @@ function AddCropModal({ open, onClose, onSave }) {
   const [dragActive, setDragActive] = useState(false);
   const [imageError, setImageError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const fileInputRef = useRef(null);
-  const dialogRef = useRef(null);
 
   useEffect(() => {
     if (open) {
@@ -152,9 +160,40 @@ function AddCropModal({ open, onClose, onSave }) {
 
   useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview);
+      if (preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
     };
   }, [preview]);
+
+  useEffect(() => {
+    if (selectedCrop) {
+      setFormData({
+        cropName: selectedCrop.cropName || "",
+        cropVariety: selectedCrop.cropVariety || "",
+        season: selectedCrop.season || "Kharif",
+        area: selectedCrop.area || "",
+        areaUnit: selectedCrop.areaUnit || "Acre",
+        sowingDate: selectedCrop.sowingDate
+          ? selectedCrop.sowingDate.slice(0, 10)
+          : "",
+        expectedHarvestDate: selectedCrop.expectedHarvestDate
+          ? selectedCrop.expectedHarvestDate.slice(0, 10)
+          : "",
+        irrigationType: selectedCrop.irrigationType || "",
+        soilType: selectedCrop.soilType || "",
+        notes: selectedCrop.notes || "",
+        cropImage: null,
+      });
+
+      setPreview(selectedCrop.cropImage || null);
+      setImageRemoved(false);
+    } else {
+      setFormData(initialFormState);
+      setPreview(null);
+      setImageRemoved(false);
+    }
+  }, [selectedCrop, open]);
 
   const harvestEstimate = useMemo(() => {
     if (!formData.sowingDate || !formData.expectedHarvestDate) return null;
@@ -209,13 +248,16 @@ function AddCropModal({ open, onClose, onSave }) {
     }
 
     setImageError(null);
+    setImageRemoved(false);
     setFormData((prev) => ({ ...prev, cropImage: file }));
     setPreview((old) => {
-      if (old) URL.revokeObjectURL(old);
+      if (old && old.startsWith("blob:")) {
+        URL.revokeObjectURL(old);
+      }
       return URL.createObjectURL(file);
     });
 
-    // Simulated upload progress — replace with real upload tracking.
+    // Simulated upload progress — replace with real axios onUploadProgress tracking.
     setUploadProgress(0);
     const start = Date.now();
     const duration = 600;
@@ -240,72 +282,114 @@ function AddCropModal({ open, onClose, onSave }) {
   };
 
   const removeImage = () => {
-    setFormData((prev) => ({ ...prev, cropImage: null }));
-    setPreview((old) => {
-      if (old) URL.revokeObjectURL(old);
-      return null;
-    });
+    // Only revoke locally created blob URLs — never a remote Cloudinary URL.
+    if (preview?.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+
+    // If editing a crop that already had a saved image and the user is
+    // clearing it (not just discarding a newly picked file), flag it so the
+    // backend knows to delete the existing image.
+    if (selectedCrop?.cropImage && !formData.cropImage) {
+      setImageRemoved(true);
+    }
+
+    setPreview(null);
+
+    setFormData((prev) => ({
+      ...prev,
+      cropImage: null,
+    }));
+
     setImageError(null);
     setUploadProgress(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setTouched({
-    cropName: true,
-    area: true,
-    sowingDate: true,
-    expectedHarvestDate: true,
-  });
+    setTouched({
+      cropName: true,
+      area: true,
+      sowingDate: true,
+      expectedHarvestDate: true,
+    });
 
-  if (hasErrors) return;
+    if (hasErrors) return;
 
-  try {
-    setSubmitting(true);
+    try {
+      setSubmitting(true);
 
-    const data = new FormData();
+      const data = new FormData();
 
-    data.append("cropName", formData.cropName);
-    data.append("cropVariety", formData.cropVariety);
-    data.append("season", formData.season);
-    data.append("area", formData.area);
-    data.append("areaUnit", formData.areaUnit);
-    data.append("sowingDate", formData.sowingDate);
-    data.append("expectedHarvestDate", formData.expectedHarvestDate);
-    data.append("irrigationType", formData.irrigationType);
-    data.append("soilType", formData.soilType);
-    data.append("notes", formData.notes);
+      data.append("cropName", formData.cropName);
+      data.append("cropVariety", formData.cropVariety);
+      data.append("season", formData.season);
+      data.append("area", formData.area);
+      data.append("areaUnit", formData.areaUnit);
+      data.append("sowingDate", formData.sowingDate);
+      data.append("expectedHarvestDate", formData.expectedHarvestDate);
+      data.append("irrigationType", formData.irrigationType);
+      data.append("soilType", formData.soilType);
+      data.append("notes", formData.notes);
 
-    if (formData.cropImage) {
-      data.append("cropImage", formData.cropImage);
+      if (formData.cropImage) {
+        data.append("cropImage", formData.cropImage);
+      }
+
+      if (selectedCrop) {
+        data.append("removeImage", imageRemoved ? "true" : "false");
+      }
+
+      if (selectedCrop) {
+        await updateCrop(selectedCrop._id, data);
+      } else {
+        await createCrop(data);
+      }
+
+      toast.success(
+        selectedCrop
+          ? "Crop Updated Successfully"
+          : "Crop Added Successfully"
+      );
+
+      removeImage();
+      setFormData(initialFormState);
+      setImageRemoved(false);
+
+      onClose();
+
+      refreshCrops();
+
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error.response?.data?.message ||
+          (selectedCrop
+            ? "Failed to update crop"
+            : "Failed to add crop")
+      );
+    } finally {
+      setSubmitting(false);
     }
-
-    const response = await createCrop(data);
-
-    toast.success(response.message);
-
-    setFormData(initialFormState);
-    removeImage();
-
-    onClose();
-
-    window.location.reload();
-
-  } catch (error) {
-    console.error(error);
-
-    toast.error(
-      error.response?.data?.message || "Failed to add crop"
-    );
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose?.();
+  };
+
+  const handleCancel = () => {
+    removeImage();
+    setFormData(initialFormState);
+    setTouched({});
+    setImageRemoved(false);
+
+    onClose();
   };
 
   return (
@@ -319,7 +403,6 @@ function AddCropModal({ open, onClose, onSave }) {
       aria-labelledby="add-crop-title"
     >
       <div
-        ref={dialogRef}
         className={`w-full max-w-2xl origin-center rounded-2xl bg-white shadow-2xl transition-all duration-200 ${
           mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
@@ -336,16 +419,18 @@ function AddCropModal({ open, onClose, onSave }) {
                   id="add-crop-title"
                   className="text-lg font-bold tracking-tight text-[#1E2521]"
                 >
-                  Add New Crop
+                  {selectedCrop ? "Edit Crop" : "Add New Crop"}
                 </h2>
                 <p className="text-sm text-[#8B8F89]">
-                  Record field, timeline, and cultivation details
+                  {selectedCrop
+                    ? "Update crop information"
+                    : "Record field, timeline, and cultivation details"}
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               aria-label="Close"
               className="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-[#8B8F89] transition-colors hover:bg-[#F4F3EF] hover:text-[#1E2521] focus:outline-none focus:ring-2 focus:ring-[#1F5D3A]/20"
             >
@@ -437,7 +522,7 @@ function AddCropModal({ open, onClose, onSave }) {
                   <div className="flex overflow-hidden rounded-lg border border-[#DEDCD4] focus-within:border-[#1F5D3A] focus-within:ring-2 focus-within:ring-[#1F5D3A]/15">
                     <input
                       type="number"
-                      min="0"
+                      min="0.01"
                       step="0.01"
                       name="area"
                       value={formData.area}
@@ -669,11 +754,15 @@ function AddCropModal({ open, onClose, onSave }) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-[#1E2521]">
-                        {formData.cropImage?.name ?? "Crop photo"}
+                        {formData.cropImage
+                          ? formData.cropImage.name
+                          : "Existing Image"}
                       </p>
                       <p className="text-xs text-[#8B8F89]">
                         {formData.cropImage
                           ? formatFileSize(formData.cropImage.size)
+                          : selectedCrop
+                          ? "Existing Image"
                           : ""}
                         {uploadProgress === null && " · Ready"}
                       </p>
@@ -681,7 +770,8 @@ function AddCropModal({ open, onClose, onSave }) {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-none items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1F5D3A] transition-colors hover:bg-[#EEF3EC]"
+                      disabled={uploadProgress !== null}
+                      className="flex flex-none items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1F5D3A] transition-colors hover:bg-[#EEF3EC] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
                       Replace
@@ -689,8 +779,9 @@ function AddCropModal({ open, onClose, onSave }) {
                     <button
                       type="button"
                       onClick={removeImage}
+                      disabled={uploadProgress !== null}
                       aria-label="Remove image"
-                      className="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-[#8B8F89] transition-colors hover:bg-[#FBEDEA] hover:text-[#B4472A]"
+                      className="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-[#8B8F89] transition-colors hover:bg-[#FBEDEA] hover:text-[#B4472A] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -704,7 +795,7 @@ function AddCropModal({ open, onClose, onSave }) {
           <div className="flex items-center justify-end gap-3 border-t border-[#ECEAE3] bg-[#FAFAF8] px-7 py-4 rounded-b-2xl">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               className="rounded-lg border border-[#DEDCD4] px-5 py-2.5 text-sm font-medium text-[#33392F] transition-colors hover:bg-[#F4F3EF]"
             >
               Cancel
@@ -715,7 +806,13 @@ function AddCropModal({ open, onClose, onSave }) {
               className="flex items-center gap-2 rounded-lg bg-[#1F5D3A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#184A2E] disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {submitting ? "Saving…" : "Save Crop"}
+              {submitting
+                ? selectedCrop
+                  ? "Updating..."
+                  : "Saving..."
+                : selectedCrop
+                ? "Update Crop"
+                : "Save Crop"}
             </button>
           </div>
         </form>
