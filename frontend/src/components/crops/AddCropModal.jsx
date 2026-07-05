@@ -74,6 +74,7 @@ const initialFormState = {
   irrigationType: "",
   soilType: "",
   notes: "",
+  status: "Growing",
   cropImage: null,
 };
 
@@ -117,11 +118,10 @@ const inputBase =
   "w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-[#1E2521] placeholder:text-[#A8ACA3] outline-none transition-colors focus:ring-2 focus:ring-offset-0";
 
 function inputClasses(hasError) {
-  return `${inputBase} ${
-    hasError
+  return `${inputBase} ${hasError
       ? "border-[#D97757] focus:border-[#D97757] focus:ring-[#D97757]/20"
       : "border-[#DEDCD4] focus:border-[#1F5D3A] focus:ring-[#1F5D3A]/15"
-  }`;
+    }`;
 }
 
 function AddCropModal({
@@ -183,6 +183,7 @@ function AddCropModal({
         irrigationType: selectedCrop.irrigationType || "",
         soilType: selectedCrop.soilType || "",
         notes: selectedCrop.notes || "",
+        status: selectedCrop.status || "Growing",
         cropImage: null,
       });
 
@@ -336,6 +337,7 @@ function AddCropModal({
       data.append("irrigationType", formData.irrigationType);
       data.append("soilType", formData.soilType);
       data.append("notes", formData.notes);
+      data.append("status", formData.status);
 
       if (formData.cropImage) {
         data.append("cropImage", formData.cropImage);
@@ -370,9 +372,9 @@ function AddCropModal({
 
       toast.error(
         error.response?.data?.message ||
-          (selectedCrop
-            ? "Failed to update crop"
-            : "Failed to add crop")
+        (selectedCrop
+          ? "Failed to update crop"
+          : "Failed to add crop")
       );
     } finally {
       setSubmitting(false);
@@ -394,18 +396,16 @@ function AddCropModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 py-8 backdrop-blur-sm transition-opacity duration-200 ${
-        mounted ? "opacity-100" : "opacity-0"
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 py-8 backdrop-blur-sm transition-opacity duration-200 ${mounted ? "opacity-100" : "opacity-0"
+        }`}
       onMouseDown={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-crop-title"
     >
       <div
-        className={`w-full max-w-2xl origin-center rounded-2xl bg-white shadow-2xl transition-all duration-200 ${
-          mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
+        className={`w-full max-w-2xl origin-center rounded-2xl bg-white shadow-2xl transition-all duration-200 ${mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
       >
         <form onSubmit={handleSubmit} noValidate>
           {/* Header */}
@@ -542,11 +542,10 @@ function AddCropModal({
                               areaUnit: unit,
                             }))
                           }
-                          className={`px-3 text-xs font-semibold transition-colors ${
-                            formData.areaUnit === unit
+                          className={`px-3 text-xs font-semibold transition-colors ${formData.areaUnit === unit
                               ? "bg-[#1F5D3A] text-white"
                               : "text-[#6B7268] hover:bg-[#ECEAE3]"
-                          }`}
+                            }`}
                         >
                           {unit}
                         </button>
@@ -618,7 +617,7 @@ function AddCropModal({
                     onBlur={handleBlur}
                     className={inputClasses(
                       touched.expectedHarvestDate &&
-                        errors.expectedHarvestDate
+                      errors.expectedHarvestDate
                     )}
                   />
                 </Field>
@@ -630,6 +629,31 @@ function AddCropModal({
                 </p>
               )}
             </div>
+
+
+
+            <SectionHeading
+              icon={Sprout}
+              title="Crop Status"
+            />
+
+            <Field label="Status">
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className={inputClasses(false)}
+              >
+                <option value="Growing">🌱 Growing</option>
+                <option value="Harvested">🌾 Harvested</option>
+              </select>
+            </Field>
+
+
+
+
+
+
 
             {/* Notes */}
             <div className="mt-7">
@@ -681,23 +705,20 @@ function AddCropModal({
                       fileInputRef.current?.click();
                     }
                   }}
-                  className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-9 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1F5D3A]/30 ${
-                    dragActive
+                  className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-9 text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1F5D3A]/30 ${dragActive
                       ? "border-[#1F5D3A] bg-[#EEF3EC]"
                       : imageError
-                      ? "border-[#D97757] bg-[#FBF1EC]"
-                      : "border-[#DEDCD4] bg-[#FAFAF8]"
-                  }`}
+                        ? "border-[#D97757] bg-[#FBF1EC]"
+                        : "border-[#DEDCD4] bg-[#FAFAF8]"
+                    }`}
                 >
                   <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                      dragActive ? "bg-[#DCEAE0]" : "bg-white"
-                    } border border-[#E3E1DB]`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-full ${dragActive ? "bg-[#DCEAE0]" : "bg-white"
+                      } border border-[#E3E1DB]`}
                   >
                     <UploadCloud
-                      className={`h-5 w-5 ${
-                        dragActive ? "text-[#1F5D3A]" : "text-[#8B8F89]"
-                      }`}
+                      className={`h-5 w-5 ${dragActive ? "text-[#1F5D3A]" : "text-[#8B8F89]"
+                        }`}
                     />
                   </span>
 
@@ -762,8 +783,8 @@ function AddCropModal({
                         {formData.cropImage
                           ? formatFileSize(formData.cropImage.size)
                           : selectedCrop
-                          ? "Existing Image"
-                          : ""}
+                            ? "Existing Image"
+                            : ""}
                         {uploadProgress === null && " · Ready"}
                       </p>
                     </div>
@@ -811,8 +832,8 @@ function AddCropModal({
                   ? "Updating..."
                   : "Saving..."
                 : selectedCrop
-                ? "Update Crop"
-                : "Save Crop"}
+                  ? "Update Crop"
+                  : "Save Crop"}
             </button>
           </div>
         </form>

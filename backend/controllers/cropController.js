@@ -39,6 +39,7 @@ const addCrop = async (req, res) => {
       irrigationType,
       soilType,
       notes,
+      status,
     } = req.body;
 
     let cropImage = "";
@@ -67,6 +68,7 @@ const addCrop = async (req, res) => {
       irrigationType,
       soilType,
       notes,
+      status,
 
       cropImage,
       cropImagePublicId,
@@ -175,6 +177,7 @@ const updateCrop = async (req, res) => {
       irrigationType,
       soilType,
       notes,
+      status,
       removeImage,
     } = req.body;
 
@@ -210,6 +213,7 @@ const updateCrop = async (req, res) => {
     crop.irrigationType = irrigationType;
     crop.soilType = soilType;
     crop.notes = notes;
+    crop.status = status;
 
     await crop.save();
 
