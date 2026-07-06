@@ -11,11 +11,11 @@ function Navbar() {
   const navigate = useNavigate();
 
   const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Features", path: "#" },
-    { name: "About", path: "#" },
-    { name: "Contact", path: "#" },
-  ];
+  { name: "Home", path: "/" },
+  { name: "Features", path: "#" },
+  { name: "About", path: "#" },
+  { name: "Contact", path: "/contact" },
+];
 
   const handleLogout = () => {
     logout();

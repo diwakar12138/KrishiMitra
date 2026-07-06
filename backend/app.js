@@ -3,6 +3,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const errorMiddleware = require("./middleware/errorMiddleware");
+const contactRoutes = require("./routes/contactRoutes");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(morgan("dev"));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/crops", cropRoutes);
+app.use("/api/v1/contact", contactRoutes);
 app.use(errorMiddleware);
 
 

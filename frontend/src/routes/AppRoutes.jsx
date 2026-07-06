@@ -5,6 +5,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import Contact from "../pages/Contact";
 
 function AppRoutes() {
   return (
@@ -24,6 +25,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+
+      <Route path="/contact" element={<Contact />} />
 
     </Routes>
   );
