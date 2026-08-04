@@ -1,21 +1,37 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Menu, X, LayoutDashboard, LogOut, User, Sparkles } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "../../context/AuthContext";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scroll effect for subtle dynamic styling
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   const navLinks = [
-  { name: "Home", path: "/" },
-  { name: "Features", path: "#" },
-  { name: "About", path: "#" },
-  { name: "Contact", path: "/contact" },
-];
+    { name: "Home", path: "/" },
+    { name: "Features", path: "/features" },
+    { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -24,145 +40,156 @@ function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="h-16 sm:h-18 md:h-20 flex items-center justify-between md:grid md:grid-cols-[minmax(200px,auto)_1fr_minmax(200px,auto)] lg:grid-cols-[minmax(260px,auto)_1fr_minmax(260px,auto)] md:gap-4 lg:gap-6">
-
-          {/* Logo */}
-          <div className="shrink-0">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/90 backdrop-blur-md border-b border-emerald-950/10 shadow-sm py-0.5"
+          : "bg-white border-b border-slate-100"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-16 sm:h-20 flex items-center justify-between">
+          
+          {/* Brand Logo */}
+          <div className="shrink-0 flex items-center gap-3">
             <Logo />
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex justify-center">
-            <ul className="flex items-center gap-6 lg:gap-11 text-sm lg:text-[15px] font-semibold text-gray-700">
-              {navLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.path}
-                    className="relative cursor-pointer pb-1 hover:text-green-700 transition-colors whitespace-nowrap group"
-                  >
-                    {link.name}
-
-                    <span className="absolute left-0 bottom-0 w-full h-[2px] bg-green-700 rounded-full scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"></span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+            {navLinks.map((link) => (
+              <NavLink
+                key={link.name}
+                to={link.path}
+                className={({ isActive }) =>
+                  `relative px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    isActive
+                      ? "text-emerald-700 bg-emerald-50/80 font-bold"
+                      : "text-slate-600 hover:text-emerald-700 hover:bg-slate-50"
+                  }`
+                }
+              >
+                {link.name}
+              </NavLink>
+            ))}
           </nav>
 
-          {/* Desktop Right Side */}
-          <div className="hidden md:flex shrink-0 items-center justify-end gap-3">
-
+          {/* Desktop Right Side CTA / Profile */}
+          <div className="hidden md:flex shrink-0 items-center gap-3">
             {isAuthenticated ? (
-              <>
+              <div className="flex items-center gap-3">
                 <Link
                   to="/dashboard"
-                  className="font-semibold text-green-700 hover:text-green-800"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-sm font-semibold hover:bg-emerald-100/80 transition-all"
                 >
-                  Dashboard
+                  <LayoutDashboard size={16} className="text-emerald-700" />
+                  <span>Dashboard</span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
-                  className="px-5 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition"
+                  title="Logout"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-sm font-medium transition-all"
                 >
-                  Logout
+                  <LogOut size={16} />
+                  <span>Logout</span>
                 </button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center gap-3">
                 <Link
                   to="/login"
-                  className="inline-flex items-center justify-center h-10 lg:h-11 px-4 lg:px-6 rounded-lg border border-green-700 text-green-700 text-sm font-semibold whitespace-nowrap hover:bg-green-50 transition-colors duration-200"
+                  className="px-5 py-2.5 rounded-xl text-slate-700 hover:text-emerald-700 text-sm font-semibold transition-all hover:bg-slate-50"
                 >
-                  Login
+                  Sign In
                 </Link>
 
                 <Link
                   to="/register"
-                  className="inline-flex items-center justify-center h-10 lg:h-11 px-4 lg:px-6 rounded-lg bg-green-700 text-white text-sm font-semibold whitespace-nowrap hover:bg-green-800 transition-colors duration-200 shadow-sm"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-md shadow-emerald-700/20 active:scale-95 transition-all"
                 >
-                  Register
+                  <Sparkles size={15} className="text-emerald-200" />
+                  <span>Get Started</span>
                 </Link>
-              </>
+              </div>
             )}
-
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-2xl text-gray-700 p-1"
+            aria-label="Toggle navigation menu"
+            className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <FaTimes /> : <FaBars />}
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Drawer Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white border-t border-gray-100 ${
-          menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 border-t-0"
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white border-b border-slate-200 ${
+          menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 border-b-0"
         }`}
       >
-        <ul className="flex flex-col p-5 gap-2 text-base font-medium text-gray-700">
+        <div className="p-4 space-y-3">
+          <ul className="space-y-1">
+            {navLinks.map((link) => (
+              <li key={link.name}>
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-xl text-base font-semibold transition-all ${
+                      isActive
+                        ? "bg-emerald-50 text-emerald-800"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-emerald-700"
+                    }`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
 
-          {navLinks.map((link) => (
-            <li key={link.name}>
-              <Link
-                to={link.path}
-                onClick={() => setMenuOpen(false)}
-                className="block py-2.5 px-2 rounded-lg hover:bg-green-50 hover:text-green-700 transition-colors"
-              >
-                {link.name}
-              </Link>
-            </li>
-          ))}
-
-          <div className="flex gap-3 mt-4">
-
+          <div className="pt-3 border-t border-slate-100">
             {isAuthenticated ? (
-              <>
+              <div className="space-y-2">
                 <Link
                   to="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex-1 text-center rounded-lg py-2.5 bg-green-700 text-white font-semibold"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-700 text-white font-semibold shadow-sm"
                 >
-                  Dashboard
+                  <LayoutDashboard size={18} />
+                  <span>Dashboard</span>
                 </Link>
 
                 <button
                   onClick={handleLogout}
-                  className="flex-1 rounded-lg py-2.5 bg-red-500 text-white font-semibold"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 font-semibold hover:bg-rose-50 transition-colors"
                 >
-                  Logout
+                  <LogOut size={18} />
+                  <span>Logout</span>
                 </button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="grid grid-cols-2 gap-3">
                 <Link
                   to="/login"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex-1 text-center border border-green-700 rounded-lg py-2.5 text-green-700 font-semibold hover:bg-green-50"
+                  className="text-center border border-slate-200 rounded-xl py-2.5 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
                 >
-                  Login
+                  Sign In
                 </Link>
 
                 <Link
                   to="/register"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex-1 text-center rounded-lg py-2.5 bg-green-700 text-white font-semibold hover:bg-green-800"
+                  className="text-center rounded-xl py-2.5 bg-emerald-700 text-white font-semibold hover:bg-emerald-800 transition-colors shadow-sm"
                 >
-                  Register
+                  Get Started
                 </Link>
-              </>
+              </div>
             )}
-
           </div>
-
-        </ul>
+        </div>
       </div>
     </header>
   );
