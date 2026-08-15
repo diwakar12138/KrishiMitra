@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, LayoutDashboard, LogOut, User, Sparkles } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  LogOut,
+  User,
+  Sparkles,
+} from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "../../context/AuthContext";
 
@@ -12,16 +19,20 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll effect for subtle dynamic styling
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
     };
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  // Close mobile drawer on route change
+  // Close mobile menu when route changes
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
@@ -48,21 +59,23 @@ function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="h-16 sm:h-20 flex items-center justify-between">
-          
-          {/* Brand Logo */}
+
+        {/* Main Navbar */}
+        <div className="h-16 sm:h-20 flex items-center justify-between relative">
+
+          {/* ================= LOGO ================= */}
           <div className="shrink-0 flex items-center gap-3">
             <Logo />
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* ================= DESKTOP NAVIGATION ================= */}
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 lg:gap-2">
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
                 to={link.path}
                 className={({ isActive }) =>
-                  `relative px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  `relative px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ${
                     isActive
                       ? "text-emerald-700 bg-emerald-50/80 font-bold"
                       : "text-slate-600 hover:text-emerald-700 hover:bg-slate-50"
@@ -74,29 +87,50 @@ function Navbar() {
             ))}
           </nav>
 
-          {/* Desktop Right Side CTA / Profile */}
-          <div className="hidden md:flex shrink-0 items-center gap-3">
+          {/* ================= DESKTOP RIGHT SIDE ================= */}
+          <div className="hidden md:flex shrink-0 items-center gap-3 ml-auto">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
+
+                {/* Dashboard */}
                 <Link
                   to="/dashboard"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-sm font-semibold hover:bg-emerald-100/80 transition-all"
                 >
-                  <LayoutDashboard size={16} className="text-emerald-700" />
+                  <LayoutDashboard
+                    size={16}
+                    className="text-emerald-700"
+                  />
+
                   <span>Dashboard</span>
                 </Link>
 
+                {/* Profile */}
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-700 text-sm font-semibold hover:bg-emerald-50 hover:text-emerald-700 transition-all"
+                >
+                  <User size={16} />
+
+                  <span>Profile</span>
+                </Link>
+
+                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   title="Logout"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-sm font-medium transition-all"
                 >
                   <LogOut size={16} />
+
                   <span>Logout</span>
                 </button>
+
               </div>
             ) : (
               <div className="flex items-center gap-3">
+
+                {/* Sign In */}
                 <Link
                   to="/login"
                   className="px-5 py-2.5 rounded-xl text-slate-700 hover:text-emerald-700 text-sm font-semibold transition-all hover:bg-slate-50"
@@ -104,35 +138,50 @@ function Navbar() {
                   Sign In
                 </Link>
 
+                {/* Get Started */}
                 <Link
                   to="/register"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-md shadow-emerald-700/20 active:scale-95 transition-all"
                 >
-                  <Sparkles size={15} className="text-emerald-200" />
+                  <Sparkles
+                    size={15}
+                    className="text-emerald-200"
+                  />
+
                   <span>Get Started</span>
                 </Link>
+
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* ================= MOBILE MENU BUTTON ================= */}
           <button
             aria-label="Toggle navigation menu"
             className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? (
+              <X size={24} />
+            ) : (
+              <Menu size={24} />
+            )}
           </button>
+
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* ================= MOBILE DRAWER ================= */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-white border-b border-slate-200 ${
-          menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 border-b-0"
+          menuOpen
+            ? "max-h-[500px] opacity-100"
+            : "max-h-0 opacity-0 border-b-0"
         }`}
       >
         <div className="p-4 space-y-3">
+
+          {/* Mobile Navigation Links */}
           <ul className="space-y-1">
             {navLinks.map((link) => (
               <li key={link.name}>
@@ -152,27 +201,47 @@ function Navbar() {
             ))}
           </ul>
 
+          {/* Mobile Auth Section */}
           <div className="pt-3 border-t border-slate-100">
+
             {isAuthenticated ? (
               <div className="space-y-2">
+
+                {/* Dashboard */}
                 <Link
                   to="/dashboard"
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-emerald-700 text-white font-semibold shadow-sm"
                 >
                   <LayoutDashboard size={18} />
+
                   <span>Dashboard</span>
                 </Link>
 
+                {/* Profile */}
+                <Link
+                  to="/profile"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+                >
+                  <User size={18} />
+
+                  <span>Profile</span>
+                </Link>
+
+                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 font-semibold hover:bg-rose-50 transition-colors"
                 >
                   <LogOut size={18} />
+
                   <span>Logout</span>
                 </button>
+
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
+
+                {/* Sign In */}
                 <Link
                   to="/login"
                   className="text-center border border-slate-200 rounded-xl py-2.5 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
@@ -180,14 +249,17 @@ function Navbar() {
                   Sign In
                 </Link>
 
+                {/* Get Started */}
                 <Link
                   to="/register"
                   className="text-center rounded-xl py-2.5 bg-emerald-700 text-white font-semibold hover:bg-emerald-800 transition-colors shadow-sm"
                 >
                   Get Started
                 </Link>
+
               </div>
             )}
+
           </div>
         </div>
       </div>
